@@ -51,7 +51,7 @@ interface PaymentInfo {
   billingCity: string
   billingState: string
   billingZip: string
-  paymentMethod: 'credit' | 'debit' | 'paypal' | 'arrival'
+  paymentMethod: 'credit' | 'debit' | 'paypal' | 'bank_transfer' | 'digital_wallet' | 'arrival'
 }
 
 const CheckoutPage: React.FC = () => {
@@ -207,6 +207,8 @@ const CheckoutPage: React.FC = () => {
         credit: 'Credit Card',
         debit: 'Debit Card', 
         paypal: 'PayPal',
+        bank_transfer: 'Bank Transfer',
+        digital_wallet: 'Digital Wallet',
         arrival: 'Pay on Arrival'
       }
       localStorage.setItem('paymentMethod', paymentMethodLabels[paymentInfo.paymentMethod])
@@ -493,39 +495,78 @@ const CheckoutPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-3">
                       Payment Method
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      {[
-                        { value: 'credit', label: 'Credit Card', icon: CreditCardIcon },
-                        { value: 'debit', label: 'Debit Card', icon: CreditCardIcon },
-                        { value: 'paypal', label: 'PayPal', icon: ShieldCheckIcon },
-                        { value: 'arrival', label: 'Pay on Arrival', icon: ShieldCheckIcon }
-                      ].map((method) => (
-                        <label key={method.value} className="cursor-pointer">
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value={method.value}
-                            checked={paymentInfo.paymentMethod === method.value}
-                            onChange={handlePaymentInfoChange}
-                            className="sr-only"
-                          />
-                          <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 flex items-center space-x-3 ${
-                            paymentInfo.paymentMethod === method.value
-                              ? 'border-luxury-gold bg-gold-50'
-                              : 'border-gray-300 hover:border-gray-400'
-                          }`}>
-                            <method.icon className="h-6 w-6 text-gray-600" />
-                            <span className="text-base font-medium text-gray-900">{method.label}</span>
-                            {paymentInfo.paymentMethod === method.value && (
-                              <div className="absolute top-2 right-2">
-                                <div className="w-2 h-2 bg-luxury-gold rounded-full"></div>
+                    <div className="space-y-4">
+                      {/* Online Payment Section */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-800 mb-3">Online Payment</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                          {[
+                            { value: 'credit', label: 'Credit/Debit Card (Visa, MasterCard, American Express)', icon: CreditCardIcon },
+                            { value: 'paypal', label: 'PayPal', icon: ShieldCheckIcon },
+                            { value: 'bank_transfer', label: 'Bank Transfer (Chase, Bank of America, Wells Fargo)', icon: ShieldCheckIcon },
+                            { value: 'digital_wallet', label: 'Digital Wallet (Apple Pay, Google Pay)', icon: ShieldCheckIcon }
+                          ].map((method) => (
+                            <label key={method.value} className="cursor-pointer">
+                              <input
+                                type="radio"
+                                name="paymentMethod"
+                                value={method.value}
+                                checked={paymentInfo.paymentMethod === method.value}
+                                onChange={handlePaymentInfoChange}
+                                className="sr-only"
+                              />
+                              <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 flex items-center space-x-3 ${
+                                paymentInfo.paymentMethod === method.value
+                                  ? 'border-luxury-gold bg-gold-50'
+                                  : 'border-gray-300 hover:border-gray-400'
+                              }`}>
+                                <method.icon className="h-5 w-5 text-gray-600" />
+                                <span className="text-sm font-medium text-gray-900">{method.label}</span>
+                                {paymentInfo.paymentMethod === method.value && (
+                                  <div className="absolute top-2 right-2">
+                                    <div className="w-2 h-2 bg-luxury-gold rounded-full"></div>
+                                  </div>
+                                )}
                               </div>
-                            )}
-                          </div>
-                        </label>
-                      ))}
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Payment on Arrival Section */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-800 mb-3">Payment on Arrival</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                          {[
+                            { value: 'arrival', label: 'Pay at Hotel (Cash, Card, or Bank Transfer at Front Desk)', icon: ShieldCheckIcon }
+                          ].map((method) => (
+                            <label key={method.value} className="cursor-pointer">
+                              <input
+                                type="radio"
+                                name="paymentMethod"
+                                value={method.value}
+                                checked={paymentInfo.paymentMethod === method.value}
+                                onChange={handlePaymentInfoChange}
+                                className="sr-only"
+                              />
+                              <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 flex items-center space-x-3 ${
+                                paymentInfo.paymentMethod === method.value
+                                  ? 'border-luxury-gold bg-gold-50'
+                                  : 'border-gray-300 hover:border-gray-400'
+                              }`}>
+                                <method.icon className="h-5 w-5 text-gray-600" />
+                                <span className="text-sm font-medium text-gray-900">{method.label}</span>
+                                {paymentInfo.paymentMethod === method.value && (
+                                  <div className="absolute top-2 right-2">
+                                    <div className="w-2 h-2 bg-luxury-gold rounded-full"></div>
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
                   
                   {paymentInfo.paymentMethod === 'arrival' ? (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">

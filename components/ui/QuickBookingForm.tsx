@@ -11,16 +11,19 @@ const QuickBookingForm: React.FC = () => {
   const [adults, setAdults] = useState(2)
   const [children, setChildren] = useState(0)
   const [isGuestsOpen, setIsGuestsOpen] = useState(false)
+  const [customGuests, setCustomGuests] = useState('')
+  const [useCustomInput, setUseCustomInput] = useState(false)
   
-  const totalGuests = adults + children
+  const totalGuests = useCustomInput ? parseInt(customGuests) || 0 : adults + children
 
   const handleSearch = () => {
+    const finalTotalGuests = useCustomInput ? parseInt(customGuests) || 0 : adults + children
     const searchParams = {
       checkInDate: checkIn?.toISOString().split('T')[0] || '',
       checkOutDate: checkOut?.toISOString().split('T')[0] || '',
-      adults: adults,
-      children: children,
-      guests: totalGuests
+      adults: useCustomInput ? finalTotalGuests : adults,
+      children: useCustomInput ? 0 : children,
+      guests: finalTotalGuests
     }
     
     // Store search parameters in localStorage for room selection
@@ -95,46 +98,117 @@ const QuickBookingForm: React.FC = () => {
                 {isGuestsOpen && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
                     <div className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-medium">Adults</span>
-                        <div className="flex items-center space-x-3">
+                      {/* Family Presets */}
+                      <div className="mb-4">
+                        <span className="text-sm font-medium mb-2 block">Quick Family Options</span>
+                        <div className="grid grid-cols-2 gap-2 mb-3">
                           <button
                             type="button"
-                            onClick={() => setAdults(Math.max(1, adults - 1))}
-                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                            onClick={() => { setAdults(2); setChildren(0); setUseCustomInput(false); }}
+                            className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                           >
-                            -
+                            Couple (2)
                           </button>
-                          <span className="w-8 text-center">{adults}</span>
                           <button
                             type="button"
-                            onClick={() => setAdults(Math.min(8, adults + 1))}
-                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                            onClick={() => { setAdults(2); setChildren(1); setUseCustomInput(false); }}
+                            className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                           >
-                            +
+                            Small Family (3)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setAdults(2); setChildren(2); setUseCustomInput(false); }}
+                            className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Family (4)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setAdults(4); setChildren(2); setUseCustomInput(false); }}
+                            className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Large Family (6)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setAdults(6); setChildren(2); setUseCustomInput(false); }}
+                            className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Extended Family (8)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setUseCustomInput(true)}
+                            className="px-3 py-2 text-xs border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Custom
                           </button>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-medium">Children</span>
-                        <div className="flex items-center space-x-3">
-                          <button
-                            type="button"
-                            onClick={() => setChildren(Math.max(0, children - 1))}
-                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                          >
-                            -
-                          </button>
-                          <span className="w-8 text-center">{children}</span>
-                          <button
-                            type="button"
-                            onClick={() => setChildren(Math.min(6, children + 1))}
-                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
-                          >
-                            +
-                          </button>
+
+                      {/* Custom Input */}
+                      {useCustomInput && (
+                        <div className="mb-4">
+                          <label className="text-sm font-medium mb-2 block">Total Guests</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="20"
+                            value={customGuests}
+                            onChange={(e) => setCustomGuests(e.target.value)}
+                            placeholder="Enter number of guests"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-luxury-gold focus:border-transparent"
+                          />
                         </div>
-                      </div>
+                      )}
+
+                      {/* Manual Controls */}
+                      {!useCustomInput && (
+                        <>
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="text-sm font-medium">Adults</span>
+                            <div className="flex items-center space-x-3">
+                              <button
+                                type="button"
+                                onClick={() => setAdults(Math.max(1, adults - 1))}
+                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                              >
+                                -
+                              </button>
+                              <span className="w-8 text-center">{adults}</span>
+                              <button
+                                type="button"
+                                onClick={() => setAdults(Math.min(15, adults + 1))}
+                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="text-sm font-medium">Children</span>
+                            <div className="flex items-center space-x-3">
+                              <button
+                                type="button"
+                                onClick={() => setChildren(Math.max(0, children - 1))}
+                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                              >
+                                -
+                              </button>
+                              <span className="w-8 text-center">{children}</span>
+                              <button
+                                type="button"
+                                onClick={() => setChildren(Math.min(10, children + 1))}
+                                className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
                       <button
                         type="button"
                         onClick={() => setIsGuestsOpen(false)}
