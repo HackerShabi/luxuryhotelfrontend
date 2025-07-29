@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
-import { useEffect } from 'react'
 import {
   EyeIcon,
   PencilIcon,
