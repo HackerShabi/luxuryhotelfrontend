@@ -30,10 +30,15 @@ const HeroSection: React.FC = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.2 }}
+          className="mb-2"
         >
+          <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full mb-6">
+            <span className="text-luxury-gold text-sm font-semibold">★★★★★</span>
+            <span className="ml-2 text-sm text-white/90">5-Star Luxury Hotel</span>
+          </div>
           <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight">
             Experience Luxury
-            <span className="block gradient-text">Beyond Imagination</span>
+            <span className="block gradient-text bg-gradient-to-r from-luxury-gold to-yellow-300 bg-clip-text text-transparent">Beyond Imagination</span>
           </h1>
         </motion.div>
 

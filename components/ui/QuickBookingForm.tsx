@@ -8,14 +8,19 @@ const QuickBookingForm: React.FC = () => {
   const router = useRouter()
   const [checkIn, setCheckIn] = useState<Date | null>(new Date())
   const [checkOut, setCheckOut] = useState<Date | null>(new Date(Date.now() + 24 * 60 * 60 * 1000))
-  const [guests, setGuests] = useState(2)
+  const [adults, setAdults] = useState(2)
+  const [children, setChildren] = useState(0)
   const [isGuestsOpen, setIsGuestsOpen] = useState(false)
+  
+  const totalGuests = adults + children
 
   const handleSearch = () => {
     const searchParams = {
       checkInDate: checkIn?.toISOString().split('T')[0] || '',
       checkOutDate: checkOut?.toISOString().split('T')[0] || '',
-      guests: guests
+      adults: adults,
+      children: children,
+      guests: totalGuests
     }
     
     // Store search parameters in localStorage for room selection
@@ -80,27 +85,50 @@ const QuickBookingForm: React.FC = () => {
                   onClick={() => setIsGuestsOpen(!isGuestsOpen)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-luxury-gold focus:border-transparent pl-10 text-left bg-white"
                 >
-                  {guests} {guests === 1 ? 'Guest' : 'Guests'}
+                  {totalGuests} {totalGuests === 1 ? 'Guest' : 'Guests'}
+                  {children > 0 && (
+                    <span className="text-xs text-gray-500 ml-1">({adults} adults, {children} children)</span>
+                  )}
                 </button>
                 <UserGroupIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 
                 {isGuestsOpen && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
                     <div className="p-4">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-4">
                         <span className="text-sm font-medium">Adults</span>
                         <div className="flex items-center space-x-3">
                           <button
                             type="button"
-                            onClick={() => setGuests(Math.max(1, guests - 1))}
+                            onClick={() => setAdults(Math.max(1, adults - 1))}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
                           >
                             -
                           </button>
-                          <span className="w-8 text-center">{guests}</span>
+                          <span className="w-8 text-center">{adults}</span>
                           <button
                             type="button"
-                            onClick={() => setGuests(Math.min(8, guests + 1))}
+                            onClick={() => setAdults(Math.min(8, adults + 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-medium">Children</span>
+                        <div className="flex items-center space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setChildren(Math.max(0, children - 1))}
+                            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
+                          >
+                            -
+                          </button>
+                          <span className="w-8 text-center">{children}</span>
+                          <button
+                            type="button"
+                            onClick={() => setChildren(Math.min(6, children + 1))}
                             className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50"
                           >
                             +

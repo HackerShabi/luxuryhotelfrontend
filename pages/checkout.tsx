@@ -493,7 +493,7 @@ const CheckoutPage: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-3">
                       Payment Method
                     </label>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       {[
                         { value: 'credit', label: 'Credit Card', icon: CreditCardIcon },
                         { value: 'debit', label: 'Debit Card', icon: CreditCardIcon },
@@ -509,13 +509,18 @@ const CheckoutPage: React.FC = () => {
                             onChange={handlePaymentInfoChange}
                             className="sr-only"
                           />
-                          <div className={`border-2 rounded-lg p-4 text-center transition-all duration-300 ${
+                          <div className={`relative border-2 rounded-lg p-4 transition-all duration-300 flex items-center space-x-3 ${
                             paymentInfo.paymentMethod === method.value
                               ? 'border-luxury-gold bg-gold-50'
                               : 'border-gray-300 hover:border-gray-400'
                           }`}>
-                            <method.icon className="h-8 w-8 mx-auto mb-2 text-gray-600" />
-                            <span className="text-sm font-medium">{method.label}</span>
+                            <method.icon className="h-6 w-6 text-gray-600" />
+                            <span className="text-base font-medium text-gray-900">{method.label}</span>
+                            {paymentInfo.paymentMethod === method.value && (
+                              <div className="absolute top-2 right-2">
+                                <div className="w-2 h-2 bg-luxury-gold rounded-full"></div>
+                              </div>
+                            )}
                           </div>
                         </label>
                       ))}
