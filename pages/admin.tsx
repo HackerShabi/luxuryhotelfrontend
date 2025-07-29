@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
+import { useEffect } from 'react'
 import {
   EyeIcon,
   PencilIcon,
@@ -83,11 +84,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://luxuryhotelback
 
 export default function AdminPanel() {
   const router = useRouter()
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [adminCredentials, setAdminCredentials] = useState({
-    password: ''
-  })
   
   // Data states
   const [stats, setStats] = useState<Stats>({
@@ -107,19 +104,15 @@ export default function AdminPanel() {
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null)
   
-  // Check authentication on mount
+  // Load data on mount
   useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    if (token) {
-      setIsAuthenticated(true)
-      loadDashboardData()
-    }
+    loadDashboardData()
     setLoading(false)
   }, [])
 
   // Auto-refresh data every 30 seconds
   useEffect(() => {
-    if (isAuthenticated && autoRefresh) {
+    if (autoRefresh) {
       const interval = setInterval(() => {
         loadDashboardData()
       }, 30000) // 30 seconds
@@ -129,46 +122,11 @@ export default function AdminPanel() {
       clearInterval(refreshInterval)
       setRefreshInterval(null)
     }
-  }, [isAuthenticated, autoRefresh])
-
-  const handleAdminLogin = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/admin/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password: adminCredentials.password }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        localStorage.setItem('adminToken', data.data.token)
-        setIsAuthenticated(true)
-        toast.success('Login successful!')
-        await loadDashboardData()
-      } else {
-        toast.error(data.message || 'Login failed')
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      toast.error('Login failed. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-
+  }, [autoRefresh])
 
   const loadDashboardData = async () => {
     try {
-      const token = localStorage.getItem('adminToken')
-      if (!token) return
-
       const headers = {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       }
 
@@ -254,53 +212,12 @@ export default function AdminPanel() {
     }
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken')
-    setIsAuthenticated(false)
-    setAdminCredentials({ password: '' })
-    router.push('/')
-  }
+
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-luxury-gold"></div>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center px-4">
-        <div className="max-w-md w-full space-y-8">
-          <div className="text-center">
-            <h2 className="mt-6 text-3xl font-extrabold text-white">
-              Admin <span className="text-luxury-gold">Login</span>
-            </h2>
-            <p className="mt-2 text-sm text-gray-400">
-              Enter admin password to access the admin panel
-            </p>
-          </div>
-          <div className="mt-8 space-y-6">
-            <div className="space-y-4">
-              <input
-                type="password"
-                placeholder="Admin Password"
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-gold focus:border-transparent"
-                value={adminCredentials.password}
-                onChange={(e) => setAdminCredentials(prev => ({ ...prev, password: e.target.value }))}
-                onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
-              />
-            </div>
-            <button
-              onClick={handleAdminLogin}
-              disabled={loading}
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-luxury-gold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxury-gold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-        </div>
       </div>
     )
   }
@@ -339,12 +256,6 @@ export default function AdminPanel() {
                 className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Refresh
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Logout
               </button>
             </div>
           </div>

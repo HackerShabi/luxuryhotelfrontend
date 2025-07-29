@@ -100,7 +100,7 @@ const QuickBookingForm: React.FC = () => {
                     <div className="p-4">
                       {/* Family Presets */}
                       <div className="mb-4">
-                        <span className="text-sm font-medium mb-2 block">Quick Family Options</span>
+                        <span className="text-sm font-medium mb-2 block text-gray-700">Quick Family Options</span>
                         <div className="grid grid-cols-2 gap-2 mb-3">
                           <button
                             type="button"
@@ -150,7 +150,7 @@ const QuickBookingForm: React.FC = () => {
                       {/* Custom Input */}
                       {useCustomInput && (
                         <div className="mb-4">
-                          <label className="text-sm font-medium mb-2 block">Total Guests</label>
+                          <label className="text-sm font-medium mb-2 block text-gray-700">Total Guests</label>
                           <input
                             type="number"
                             min="1"
@@ -167,7 +167,7 @@ const QuickBookingForm: React.FC = () => {
                       {!useCustomInput && (
                         <>
                           <div className="flex items-center justify-between mb-4">
-                            <span className="text-sm font-medium">Adults</span>
+                            <span className="text-sm font-medium text-gray-700">Adults</span>
                             <div className="flex items-center space-x-3">
                               <button
                                 type="button"
@@ -176,7 +176,7 @@ const QuickBookingForm: React.FC = () => {
                               >
                                 -
                               </button>
-                              <span className="w-8 text-center">{adults}</span>
+                              <span className="w-8 text-center text-gray-700">{adults}</span>
                               <button
                                 type="button"
                                 onClick={() => setAdults(Math.min(15, adults + 1))}
@@ -187,7 +187,7 @@ const QuickBookingForm: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex items-center justify-between mb-4">
-                            <span className="text-sm font-medium">Children</span>
+                            <span className="text-sm font-medium text-gray-700">Children</span>
                             <div className="flex items-center space-x-3">
                               <button
                                 type="button"
@@ -196,7 +196,7 @@ const QuickBookingForm: React.FC = () => {
                               >
                                 -
                               </button>
-                              <span className="w-8 text-center">{children}</span>
+                              <span className="w-8 text-center text-gray-700">{children}</span>
                               <button
                                 type="button"
                                 onClick={() => setChildren(Math.min(10, children + 1))}

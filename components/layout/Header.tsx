@@ -7,6 +7,8 @@ import { Bars3Icon, XMarkIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [clickCount, setClickCount] = useState(0)
+  const [clickTimer, setClickTimer] = useState<NodeJS.Timeout | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -26,6 +28,36 @@ const Header: React.FC = () => {
   ]
 
   const isActive = (path: string) => router.pathname === path
+
+  const handleHotelNameClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    
+    if (clickTimer) {
+      clearTimeout(clickTimer)
+    }
+    
+    const newClickCount = clickCount + 1
+    setClickCount(newClickCount)
+    
+    if (newClickCount === 3) {
+      // Triple click detected - redirect to admin
+      router.push('/admin')
+      setClickCount(0)
+      setClickTimer(null)
+    } else {
+      // Set timer to reset click count after 4 seconds
+      const timer = setTimeout(() => {
+        setClickCount(0)
+        setClickTimer(null)
+      }, 4000)
+      setClickTimer(timer)
+      
+      // If not triple click, navigate to home
+      if (newClickCount === 1) {
+        router.push('/')
+      }
+    }
+  }
 
   return (
     <>
@@ -74,7 +106,7 @@ const Header: React.FC = () => {
         <div className="container-custom">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={handleHotelNameClick}>
               <div className="w-10 h-10 bg-gradient-to-r from-luxury-gold to-gold-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-xl">L</span>
               </div>
@@ -82,7 +114,7 @@ const Header: React.FC = () => {
                 <h1 className="text-2xl font-serif font-bold text-luxury-dark">Luxury Hotel</h1>
                 <p className="text-xs text-gray-600 -mt-1">Experience Beyond Imagination</p>
               </div>
-            </Link>
+            </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
@@ -101,17 +133,8 @@ const Header: React.FC = () => {
               ))}
             </nav>
 
-            {/* Admin Panel & Book Now Buttons */}
+            {/* Book Now Button */}
             <div className="hidden lg:flex items-center space-x-4">
-              <Link 
-                href="/admin" 
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 2.676-.732 5.162-2.217 7.162-4.148.543-.525 1.025-1.105 1.438-1.736A11.955 11.955 0 0021 9a12.02 12.02 0 00-.382-3.016z" />
-                </svg>
-                <span>Admin Panel</span>
-              </Link>
               <Link href="/checkout" className="btn-primary">
                 Book Now
               </Link>

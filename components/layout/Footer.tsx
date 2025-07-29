@@ -113,8 +113,21 @@ const Footer: React.FC = () => {
         {/* Bottom Footer */}
         <div className="border-t border-gray-800 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-            <div className="text-gray-400 text-sm">
-              © 2024 Luxury Hotel. All rights reserved.
+            <div className="flex flex-col space-y-2">
+              <div className="text-gray-400 text-sm">
+                © 2024 Luxury Hotel. All rights reserved.
+              </div>
+              <div className="text-gray-500 text-xs">
+                WEBSITE DEVELOPED BY{' '}
+                <a 
+                  href="https://wa.me/923290091255" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-luxury-gold hover:text-gold-400 transition-colors font-medium"
+                >
+                  DALIWEB
+                </a>
+              </div>
             </div>
             <div className="flex items-center space-x-6">
               <Link href="/privacy" className="text-gray-400 hover:text-luxury-gold text-sm transition-colors">
@@ -123,13 +136,13 @@ const Footer: React.FC = () => {
               <Link href="/terms" className="text-gray-400 hover:text-luxury-gold text-sm transition-colors">
                 Terms of Service
               </Link>
-              {/* Admin Access */}
+              {/* Admin Access - Less prominent */}
               <Link 
-                href="/admin?key=admin123" 
-                className="text-gray-600 hover:text-luxury-gold text-xs transition-colors"
-                title="Admin Access"
+                href="/admin" 
+                className="text-gray-700 hover:text-gray-500 text-xs transition-colors opacity-50"
+                title="Admin Panel"
               >
-                Admin
+                •
               </Link>
             </div>
           </div>
