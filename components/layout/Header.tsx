@@ -101,8 +101,17 @@ const Header: React.FC = () => {
               ))}
             </nav>
 
-            {/* Book Now Button */}
-            <div className="hidden lg:block">
+            {/* Admin Panel & Book Now Buttons */}
+            <div className="hidden lg:flex items-center space-x-4">
+              <Link 
+                href="/admin" 
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 2.676-.732 5.162-2.217 7.162-4.148.543-.525 1.025-1.105 1.438-1.736A11.955 11.955 0 0021 9a12.02 12.02 0 00-.382-3.016z" />
+                </svg>
+                <span>Admin Panel</span>
+              </Link>
               <Link href="/checkout" className="btn-primary">
                 Book Now
               </Link>
@@ -141,6 +150,16 @@ const Header: React.FC = () => {
                     {item.name}
                   </Link>
                 ))}
+                <Link
+                  href="/admin"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors duration-200 flex items-center justify-center space-x-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 2.676-.732 5.162-2.217 7.162-4.148.543-.525 1.025-1.105 1.438-1.736A11.955 11.955 0 0021 9a12.02 12.02 0 00-.382-3.016z" />
+                  </svg>
+                  <span>Admin Panel</span>
+                </Link>
                 <Link
                   href="/checkout"
                   className="btn-primary inline-block text-center"
