@@ -29,7 +29,7 @@ interface Room {
   name: string
   type: string
   price: number
-  occupancy: number
+  maxOccupancy: number
   size: number
   amenities: string[]
   images: string[]
@@ -181,7 +181,7 @@ const AdminDashboard: React.FC = () => {
         name: 'Deluxe Ocean View Suite',
         type: 'Suite',
         price: 299,
-        occupancy: 2,
+        maxOccupancy: 2,
         size: 450,
         amenities: ['Ocean View', 'King Bed', 'Balcony', 'Mini Bar'],
         images: ['https://images.unsplash.com/photo-1611892440504-42a792e24d32'],
@@ -193,7 +193,7 @@ const AdminDashboard: React.FC = () => {
         name: 'Executive Business Room',
         type: 'Business',
         price: 199,
-        occupancy: 2,
+        maxOccupancy: 2,
         size: 320,
         amenities: ['City View', 'Work Desk', 'High-Speed WiFi', 'Coffee Machine'],
         images: ['https://images.unsplash.com/photo-1566665797739-1674de7a421a'],
@@ -297,7 +297,7 @@ const AdminDashboard: React.FC = () => {
         description: roomForm.description,
         images: roomForm.images || [],
         amenities: roomForm.amenities || [],
-        isAvailable: roomForm.available
+        available: roomForm.available
       }
       setRooms(prev => prev.map(room => 
         room.id === editingRoom.id ? updatedRoom : room
@@ -315,11 +315,7 @@ const AdminDashboard: React.FC = () => {
         description: roomForm.description,
         images: roomForm.images || [],
         amenities: roomForm.amenities || [],
-        rating: 4.5,
-        reviewCount: 0,
-        isAvailable: roomForm.available,
-        isPopular: false,
-        discount: 0
+        available: roomForm.available
       }
       setRooms(prev => [...prev, newRoom])
       toast.success('Room created successfully')
@@ -331,7 +327,7 @@ const AdminDashboard: React.FC = () => {
       name: '',
       type: '',
       price: 0,
-      occupancy: 1,
+      maxOccupancy: 1,
       size: 0,
       amenities: [],
       images: [],
@@ -352,7 +348,7 @@ const AdminDashboard: React.FC = () => {
       amenities: room.amenities || [],
       images: room.images || [],
       description: room.description,
-      available: room.isAvailable
+      available: room.available
     })
     setShowRoomModal(true)
   }
