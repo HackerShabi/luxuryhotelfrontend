@@ -86,16 +86,8 @@ export default function AdminPanel() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [adminCredentials, setAdminCredentials] = useState({
-    email: '',
     password: ''
   })
-  const [signupData, setSignupData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: ''
-  })
-  const [isSignupMode, setIsSignupMode] = useState(false)
   
   // Data states
   const [stats, setStats] = useState<Stats>({
@@ -147,7 +139,7 @@ export default function AdminPanel() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(adminCredentials),
+        body: JSON.stringify({ password: adminCredentials.password }),
       })
 
       const data = await response.json()
@@ -168,34 +160,7 @@ export default function AdminPanel() {
     }
   }
 
-  const handleAdminSignup = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch(`${API_BASE_URL}/admin/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signupData),
-      })
 
-      const data = await response.json()
-
-      if (data.success) {
-        localStorage.setItem('adminToken', data.data.token)
-        setIsAuthenticated(true)
-        toast.success('Registration successful!')
-        await loadDashboardData()
-      } else {
-        toast.error(data.message || 'Registration failed')
-      }
-    } catch (error) {
-      console.error('Signup error:', error)
-      toast.error('Network error. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const loadDashboardData = async () => {
     try {
@@ -310,77 +275,30 @@ export default function AdminPanel() {
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <h2 className="mt-6 text-3xl font-extrabold text-white">
-              Admin <span className="text-luxury-gold">{isSignupMode ? 'Register' : 'Login'}</span>
+              Admin <span className="text-luxury-gold">Login</span>
             </h2>
             <p className="mt-2 text-sm text-gray-400">
-              {isSignupMode ? 'Create your admin account' : 'Enter your credentials to access the admin panel'}
+              Enter admin password to access the admin panel
             </p>
           </div>
           <div className="mt-8 space-y-6">
             <div className="space-y-4">
-              {isSignupMode && (
-                <>
-                  <input
-                    type="text"
-                    placeholder="First Name"
-                    className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-gold focus:border-transparent"
-                    value={signupData.firstName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, firstName: e.target.value }))}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Last Name"
-                    className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-gold focus:border-transparent"
-                    value={signupData.lastName}
-                    onChange={(e) => setSignupData(prev => ({ ...prev, lastName: e.target.value }))}
-                  />
-                </>
-              )}
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-gold focus:border-transparent"
-                value={isSignupMode ? signupData.email : adminCredentials.email}
-                onChange={(e) => {
-                  if (isSignupMode) {
-                    setSignupData(prev => ({ ...prev, email: e.target.value }))
-                  } else {
-                    setAdminCredentials(prev => ({ ...prev, email: e.target.value }))
-                  }
-                }}
-                onKeyPress={(e) => e.key === 'Enter' && (isSignupMode ? handleAdminSignup() : handleAdminLogin())}
-              />
               <input
                 type="password"
-                placeholder="Password"
+                placeholder="Admin Password"
                 className="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-luxury-gold focus:border-transparent"
-                value={isSignupMode ? signupData.password : adminCredentials.password}
-                onChange={(e) => {
-                  if (isSignupMode) {
-                    setSignupData(prev => ({ ...prev, password: e.target.value }))
-                  } else {
-                    setAdminCredentials(prev => ({ ...prev, password: e.target.value }))
-                  }
-                }}
-                onKeyPress={(e) => e.key === 'Enter' && (isSignupMode ? handleAdminSignup() : handleAdminLogin())}
+                value={adminCredentials.password}
+                onChange={(e) => setAdminCredentials(prev => ({ ...prev, password: e.target.value }))}
+                onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
               />
             </div>
             <button
-              onClick={isSignupMode ? handleAdminSignup : handleAdminLogin}
+              onClick={handleAdminLogin}
               disabled={loading}
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-luxury-gold hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-luxury-gold disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? (isSignupMode ? 'Creating Account...' : 'Signing in...') : (isSignupMode ? 'Create Account' : 'Sign in')}
+              {loading ? 'Signing in...' : 'Sign in'}
             </button>
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setIsSignupMode(!isSignupMode)}
-                className="text-luxury-gold hover:text-yellow-400 text-sm font-medium"
-              >
-                {isSignupMode ? 'Already have an account? Sign in' : 'Need an account? Sign up'}
-              </button>
-            </div>
           </div>
         </div>
       </div>
