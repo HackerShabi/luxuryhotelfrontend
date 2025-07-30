@@ -80,8 +80,8 @@ interface Stats {
   unreadContacts: number
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://luxuryhotelbackend.onrender.com/api'
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'https://luxuryhotelbackend.onrender.com'
 
 export default function AdminPanel() {
   const router = useRouter()
@@ -150,9 +150,9 @@ export default function AdminPanel() {
       loadDashboardData()
     })
 
-    newSocket.on('booking-updated', (data) => {
+    newSocket.on('booking-updated', (data: { booking: Booking }) => {
       console.log('Booking updated:', data)
-      toast.info(`Booking ${data.booking.bookingId} status updated to ${data.booking.bookingStatus}`)
+      toast.info(`Booking ${data.booking._id} status updated to ${data.booking.status}`)
       // Refresh bookings data
       loadDashboardData()
     })
