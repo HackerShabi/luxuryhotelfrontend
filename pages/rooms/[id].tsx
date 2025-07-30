@@ -22,29 +22,31 @@ import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import toast from 'react-hot-toast'
 
 interface Room {
-  id: number
+  _id?: string
+  id?: number
   name: string
   type: string
   price: number
   originalPrice?: number
   maxOccupancy: number
-  size: string
+  size: string | number
   description: string
-  longDescription: string
+  longDescription?: string
   images: string[]
   amenities: string[]
-  rating: number
-  reviewCount: number
-  isAvailable: boolean
+  rating?: number
+  reviewCount?: number
+  isAvailable?: boolean
+  available?: boolean
   isPopular?: boolean
   discount?: number
-  features: {
+  features?: {
     bedType: string
     view: string
     bathroom: string
     area: string
   }
-  policies: {
+  policies?: {
     checkIn: string
     checkOut: string
     cancellation: string
@@ -53,87 +55,7 @@ interface Room {
   }
 }
 
-const roomsData: { [key: number]: Room } = {
-  1: {
-    id: 1,
-    name: 'Deluxe King Room',
-    type: 'deluxe',
-    price: 299,
-    originalPrice: 349,
-    maxOccupancy: 2,
-    size: '35 sqm',
-    description: 'Spacious room with king-size bed, city view, and modern amenities for the perfect urban retreat.',
-    longDescription: 'Experience luxury and comfort in our Deluxe King Room, featuring a plush king-size bed with premium linens, a spacious seating area, and floor-to-ceiling windows offering stunning city views. The room is elegantly appointed with contemporary furnishings, a marble bathroom with rainfall shower, and state-of-the-art technology including smart TV and high-speed WiFi. Perfect for business travelers and couples seeking a sophisticated urban retreat.',
-    images: [
-      'https://images.unsplash.com/photo-1611892440504-42a792e24d32?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'
-    ],
-    amenities: [
-      'King Size Bed', 'City View', 'High-Speed WiFi', 'Mini Bar', 'Air Conditioning', 
-      '24/7 Room Service', 'Smart TV', 'Coffee Machine', 'Safe', 'Marble Bathroom',
-      'Rainfall Shower', 'Premium Toiletries', 'Work Desk', 'Blackout Curtains'
-    ],
-    rating: 4.8,
-    reviewCount: 124,
-    isAvailable: true,
-    isPopular: true,
-    discount: 15,
-    features: {
-      bedType: 'King Size Bed',
-      view: 'City View',
-      bathroom: 'Marble with Rainfall Shower',
-      area: '35 sqm'
-    },
-    policies: {
-      checkIn: '3:00 PM',
-      checkOut: '12:00 PM',
-      cancellation: 'Free cancellation up to 24 hours before check-in',
-      smoking: false,
-      pets: false
-    }
-  },
-  2: {
-    id: 2,
-    name: 'Executive Suite',
-    type: 'suite',
-    price: 599,
-    maxOccupancy: 4,
-    size: '65 sqm',
-    description: 'Luxurious suite with separate living area, premium amenities, and panoramic city views.',
-    longDescription: 'Indulge in ultimate luxury with our Executive Suite, featuring a spacious bedroom with king-size bed, separate living room with dining area, and panoramic city views from floor-to-ceiling windows. The suite includes premium amenities such as a Jacuzzi, butler service, and exclusive access to the executive lounge. Perfect for extended stays, business meetings, or special occasions.',
-    images: [
-      'https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-      'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'
-    ],
-    amenities: [
-      'Separate Living Room', 'Panoramic City View', 'High-Speed WiFi', 'Mini Bar', 
-      'Jacuzzi', 'Butler Service', 'Executive Lounge Access', 'Dining Area',
-      'Premium Sound System', 'Multiple TVs', 'Espresso Machine', 'Walk-in Closet',
-      'Marble Bathroom', 'Premium Toiletries', 'Complimentary Breakfast'
-    ],
-    rating: 4.9,
-    reviewCount: 89,
-    isAvailable: true,
-    isPopular: true,
-    features: {
-      bedType: 'King Size Bed',
-      view: 'Panoramic City View',
-      bathroom: 'Marble with Jacuzzi',
-      area: '65 sqm'
-    },
-    policies: {
-      checkIn: '3:00 PM',
-      checkOut: '12:00 PM',
-      cancellation: 'Free cancellation up to 48 hours before check-in',
-      smoking: false,
-      pets: true
-    }
-  }
-}
+
 
 const RoomDetailPage: React.FC = () => {
   const router = useRouter()
@@ -147,16 +69,26 @@ const RoomDetailPage: React.FC = () => {
   const [isBooking, setIsBooking] = useState(false)
 
   useEffect(() => {
-    if (id) {
-      const roomId = parseInt(id as string)
-      const roomData = roomsData[roomId]
-      if (roomData) {
-        setRoom(roomData)
-      } else {
-        // Room not found, redirect to rooms page
-        router.push('/rooms')
+    const fetchRoom = async () => {
+      if (id) {
+        try {
+          const response = await fetch(`/api/rooms/${id}`)
+          if (response.ok) {
+            const roomData = await response.json()
+            setRoom(roomData)
+          } else {
+            toast.error('Room not found')
+            router.push('/rooms')
+          }
+        } catch (error) {
+          console.error('Error fetching room:', error)
+          toast.error('Failed to load room details')
+          router.push('/rooms')
+        }
       }
     }
+
+    fetchRoom()
   }, [id, router])
 
   const nextImage = () => {
@@ -190,7 +122,7 @@ const RoomDetailPage: React.FC = () => {
       router.push({
         pathname: '/checkout',
         query: {
-          roomId: room?.id,
+          roomId: room?._id || room?.id,
           roomName: room?.name,
           checkIn: checkInDate,
           checkOut: checkOutDate,
@@ -327,11 +259,11 @@ const RoomDetailPage: React.FC = () => {
                       </div>
                       <div className="flex items-center space-x-1">
                         <HomeIcon className="h-5 w-5" />
-                        <span>{room.size}</span>
+                        <span>{typeof room.size === 'number' ? `${room.size} sqm` : room.size}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <StarIconSolid className="h-5 w-5 text-yellow-400" />
-                        <span>{room.rating} ({room.reviewCount} reviews)</span>
+                        <span>{room.rating || 4.5} ({room.reviewCount || 0} reviews)</span>
                       </div>
                     </div>
                   </div>
@@ -345,26 +277,26 @@ const RoomDetailPage: React.FC = () => {
                 </div>
 
                 <p className="text-gray-700 leading-relaxed mb-6">
-                  {room.longDescription}
+                  {room.longDescription || room.description}
                 </p>
 
                 {/* Room Features */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-semibold text-luxury-dark mb-1">Bed Type</h4>
-                    <p className="text-gray-600 text-sm">{room.features.bedType}</p>
+                    <p className="text-gray-600 text-sm">{room.features?.bedType || 'King Bed'}</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-semibold text-luxury-dark mb-1">View</h4>
-                    <p className="text-gray-600 text-sm">{room.features.view}</p>
+                    <p className="text-gray-600 text-sm">{room.features?.view || 'City View'}</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-semibold text-luxury-dark mb-1">Bathroom</h4>
-                    <p className="text-gray-600 text-sm">{room.features.bathroom}</p>
+                    <p className="text-gray-600 text-sm">{room.features?.bathroom || 'Private'}</p>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-semibold text-luxury-dark mb-1">Area</h4>
-                    <p className="text-gray-600 text-sm">{room.features.area}</p>
+                    <p className="text-gray-600 text-sm">{room.features?.area || '35 sqm'}</p>
                   </div>
                 </div>
 
@@ -396,41 +328,41 @@ const RoomDetailPage: React.FC = () => {
                     <div className="space-y-2 text-gray-600">
                       <div className="flex items-center space-x-2">
                         <ClockIcon className="h-4 w-4" />
-                        <span>Check-in: {room.policies.checkIn}</span>
+                        <span>Check-in: {room.policies?.checkIn || '3:00 PM'}</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <ClockIcon className="h-4 w-4" />
-                        <span>Check-out: {room.policies.checkOut}</span>
+                        <span>Check-out: {room.policies?.checkOut || '12:00 PM'}</span>
                       </div>
                     </div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-luxury-dark mb-2">Cancellation</h4>
-                    <p className="text-gray-600">{room.policies.cancellation}</p>
+                    <p className="text-gray-600">{room.policies?.cancellation || 'Free cancellation up to 24 hours before check-in'}</p>
                   </div>
                   <div>
                     <h4 className="font-semibold text-luxury-dark mb-2">Smoking Policy</h4>
                     <div className="flex items-center space-x-2">
-                      {room.policies.smoking ? (
+                      {room.policies?.smoking ? (
                         <CheckCircleIcon className="h-4 w-4 text-green-500" />
                       ) : (
                         <XMarkIcon className="h-4 w-4 text-red-500" />
                       )}
                       <span className="text-gray-600">
-                        {room.policies.smoking ? 'Smoking allowed' : 'Non-smoking room'}
+                        {room.policies?.smoking ? 'Smoking allowed' : 'Non-smoking room'}
                       </span>
                     </div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-luxury-dark mb-2">Pet Policy</h4>
                     <div className="flex items-center space-x-2">
-                      {room.policies.pets ? (
+                      {room.policies?.pets ? (
                         <CheckCircleIcon className="h-4 w-4 text-green-500" />
                       ) : (
                         <XMarkIcon className="h-4 w-4 text-red-500" />
                       )}
                       <span className="text-gray-600">
-                        {room.policies.pets ? 'Pets allowed' : 'No pets allowed'}
+                        {room.policies?.pets ? 'Pets allowed' : 'No pets allowed'}
                       </span>
                     </div>
                   </div>
@@ -526,9 +458,9 @@ const RoomDetailPage: React.FC = () => {
 
                 <button
                   onClick={handleBookNow}
-                  disabled={!room.isAvailable || isBooking}
+                  disabled={!(room.isAvailable ?? room.available ?? true) || isBooking}
                   className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 ${
-                    room.isAvailable && !isBooking
+                    (room.isAvailable ?? room.available ?? true) && !isBooking
                       ? 'bg-luxury-gold text-white hover:bg-gold-600'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
@@ -538,7 +470,7 @@ const RoomDetailPage: React.FC = () => {
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       <span>Processing...</span>
                     </div>
-                  ) : room.isAvailable ? (
+                  ) : (room.isAvailable ?? room.available ?? true) ? (
                     'Book Now'
                   ) : (
                     'Unavailable'
