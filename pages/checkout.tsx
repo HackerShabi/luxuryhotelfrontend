@@ -2,49 +2,102 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/layout/Layout';
 import { Calendar, Users, CreditCard, MapPin, Phone, Mail, User } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface GuestInfo {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  country: string;
-  zipCode: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
   specialRequests: string;
 }
 
 interface PaymentInfo {
   method: 'credit_card' | 'paypal' | 'bank_transfer' | 'digital_wallet' | 'pay_on_arrival';
-  cardNumber?: string;
-  expiryDate?: string;
-  cvv?: string;
-  cardholderName?: string;
+  cardNumber: string;
+  expiryDate: string;
+  cvv: string;
+  cardholderName: string;
+}
+
+interface Room {
+  id: number;
+  name: string;
+  type: string;
+  price: number;
+  maxOccupancy: number;
+  images: string[];
 }
 
 const CheckoutPage: React.FC = () => {
   const router = useRouter();
-  const { roomId, checkIn, checkOut, guests, roomType, price } = router.query;
+  const { roomId, roomName, checkIn, checkOut, guests } = router.query;
   
+  const [room, setRoom] = useState<Room | null>(null);
+  const [loading, setLoading] = useState(true);
   const [guestInfo, setGuestInfo] = useState<GuestInfo>({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
-    address: '',
-    city: '',
-    country: '',
-    zipCode: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: ''
+    },
     specialRequests: ''
   });
 
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({
-    method: 'credit_card'
+    method: 'credit_card',
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardholderName: ''
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Fetch room details
+  useEffect(() => {
+    const fetchRoomDetails = async () => {
+      if (!roomId) {
+        toast.error('No room selected');
+        router.push('/rooms');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/rooms?id=${roomId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          setRoom(data.data);
+        } else {
+          toast.error('Failed to load room details');
+          router.push('/rooms');
+        }
+      } catch (error) {
+        console.error('Error fetching room:', error);
+        toast.error('Failed to load room details');
+        router.push('/rooms');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoomDetails();
+  }, [roomId, router]);
 
   const paymentMethodLabels = {
     credit_card: 'Credit/Debit Card (Visa, MasterCard, American Express)',
@@ -63,7 +116,7 @@ const CheckoutPage: React.FC = () => {
 
   const calculateTotal = () => {
     const nights = calculateNights();
-    const basePrice = parseFloat(price as string) || 0;
+    const basePrice = room?.price || 0;
     const subtotal = basePrice * nights;
     const tax = subtotal * 0.1; // 10% tax
     return {
@@ -108,18 +161,31 @@ const CheckoutPage: React.FC = () => {
     
     if (!validateForm()) return;
     
-    setIsLoading(true);
+    setIsSubmitting(true);
     
     try {
       const bookingData = {
-        roomId,
-        roomType,
-        checkIn,
-        checkOut,
-        guests: parseInt(guests as string),
-        guestInfo,
-        paymentInfo,
-        totalAmount: calculateTotal().total
+        roomId: parseInt(roomId as string),
+        checkInDate: checkIn,
+        checkOutDate: checkOut,
+        numberOfGuests: parseInt(guests as string),
+        guestInfo: {
+          firstName: guestInfo.firstName,
+          lastName: guestInfo.lastName,
+          email: guestInfo.email,
+          phone: guestInfo.phone,
+          address: `${guestInfo.address.street}, ${guestInfo.address.city}, ${guestInfo.address.state} ${guestInfo.address.zipCode}, ${guestInfo.address.country}`
+        },
+        paymentInfo: {
+          method: paymentInfo.method,
+          ...(paymentInfo.method === 'credit_card' && {
+            cardNumber: paymentInfo.cardNumber,
+            expiryDate: paymentInfo.expiryDate,
+            cvv: paymentInfo.cvv,
+            cardholderName: paymentInfo.cardholderName
+          })
+        },
+        specialRequests: guestInfo.specialRequests || ''
       };
       
       const response = await fetch('/api/bookings', {
@@ -130,21 +196,48 @@ const CheckoutPage: React.FC = () => {
         body: JSON.stringify(bookingData)
       });
       
-      if (response.ok) {
-        const booking = await response.json();
-        router.push(`/booking-confirmation?bookingId=${booking.id}`);
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        toast.success('Booking confirmed successfully!');
+        router.push(`/booking-confirmation?bookingId=${result.data._id}`);
       } else {
-        throw new Error('Booking failed');
+        throw new Error(result.message || 'Booking failed');
       }
     } catch (error) {
       console.error('Booking error:', error);
-      alert('Booking failed. Please try again.');
+      toast.error(error.message || 'Booking failed. Please try again.');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const { subtotal, tax, total } = calculateTotal();
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading booking details...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!room) {
+    return (
+      <Layout>
+        <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600">Room not found</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -233,14 +326,14 @@ const CheckoutPage: React.FC = () => {
                     
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Address
+                        Street Address
                       </label>
                       <input
                         type="text"
-                        value={guestInfo.address}
-                        onChange={(e) => handleGuestInfoChange('address', e.target.value)}
+                        value={guestInfo.address.street}
+                        onChange={(e) => setGuestInfo(prev => ({ ...prev, address: { ...prev.address, street: e.target.value } }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter address"
+                        placeholder="Enter street address"
                       />
                     </div>
                     
@@ -250,10 +343,36 @@ const CheckoutPage: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        value={guestInfo.city}
-                        onChange={(e) => handleGuestInfoChange('city', e.target.value)}
+                        value={guestInfo.address.city}
+                        onChange={(e) => setGuestInfo(prev => ({ ...prev, address: { ...prev.address, city: e.target.value } }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter city"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        State/Province
+                      </label>
+                      <input
+                        type="text"
+                        value={guestInfo.address.state}
+                        onChange={(e) => setGuestInfo(prev => ({ ...prev, address: { ...prev.address, state: e.target.value } }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter state/province"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        ZIP/Postal Code
+                      </label>
+                      <input
+                        type="text"
+                        value={guestInfo.address.zipCode}
+                        onChange={(e) => setGuestInfo(prev => ({ ...prev, address: { ...prev.address, zipCode: e.target.value } }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter ZIP/postal code"
                       />
                     </div>
                     
@@ -263,8 +382,8 @@ const CheckoutPage: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        value={guestInfo.country}
-                        onChange={(e) => handleGuestInfoChange('country', e.target.value)}
+                        value={guestInfo.address.country}
+                        onChange={(e) => setGuestInfo(prev => ({ ...prev, address: { ...prev.address, country: e.target.value } }))}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter country"
                       />
@@ -409,10 +528,10 @@ const CheckoutPage: React.FC = () => {
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isSubmitting}
                     className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isLoading ? 'Processing...' : 'Complete Booking'}
+                    {isSubmitting ? 'Processing...' : 'Complete Booking'}
                   </button>
                 </div>
               </form>
@@ -437,20 +556,51 @@ const CheckoutPage: React.FC = () => {
                   </div>
                   
                   <div className="border-t pt-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">{roomType}</h3>
+                    {room.images && room.images.length > 0 && (
+                      <img 
+                        src={room.images[0]} 
+                        alt={room.name}
+                        className="w-full h-32 object-cover rounded-lg mb-4"
+                      />
+                    )}
+                    <h3 className="font-semibold text-gray-900 mb-2">{room.name}</h3>
+                    <p className="text-sm text-gray-600 mb-4">{room.type}</p>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span>Room rate × {calculateNights()} nights</span>
-                        <span>${subtotal.toFixed(2)}</span>
+                        <span className="text-gray-600">Check-in:</span>
+                        <span className="font-medium">{checkIn}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Taxes & fees</span>
-                        <span>${tax.toFixed(2)}</span>
+                        <span className="text-gray-600">Check-out:</span>
+                        <span className="font-medium">{checkOut}</span>
                       </div>
-                      <div className="border-t pt-2 flex justify-between font-semibold text-lg">
-                        <span>Total</span>
-                        <span>${total.toFixed(2)}</span>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Guests:</span>
+                        <span className="font-medium">{guests}</span>
                       </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Nights:</span>
+                        <span className="font-medium">{calculateNights()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Max Occupancy:</span>
+                        <span className="font-medium">{room.maxOccupancy} guests</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-4 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Room Rate (${room.price}/night × {calculateNights()} nights)</span>
+                      <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Taxes & Fees (10%)</span>
+                      <span className="font-medium">${tax.toFixed(2)}</span>
+                    </div>
+                    <div className="border-t pt-2 flex justify-between font-semibold text-lg">
+                      <span>Total</span>
+                      <span className="text-blue-600">${total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
