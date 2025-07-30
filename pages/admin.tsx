@@ -79,7 +79,7 @@ interface Stats {
   unreadContacts: number
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://luxuryhotelbackend.onrender.com/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
 
 export default function AdminPanel() {
   const router = useRouter()
@@ -125,8 +125,11 @@ export default function AdminPanel() {
 
   const loadDashboardData = async () => {
     try {
+      const token = localStorage.getItem('adminToken')
       const headers = {
         'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+        'x-admin-key': 'admin123' // Add admin key for additional auth
       }
 
       // Load all data in parallel

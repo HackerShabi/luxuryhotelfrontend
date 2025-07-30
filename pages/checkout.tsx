@@ -70,34 +70,63 @@ const CheckoutPage: React.FC = () => {
 
   // Fetch room details
   useEffect(() => {
-    const fetchRoomDetails = async () => {
-      if (!roomId) {
-        toast.error('No room selected');
-        router.push('/rooms');
-        return;
-      }
-
-      try {
-        const response = await fetch(`/api/rooms?id=${roomId}`);
-        const data = await response.json();
-        
-        if (data.success) {
-          setRoom(data.data);
-        } else {
-          toast.error('Failed to load room details');
-          router.push('/rooms');
+    if (router.isReady) {
+      let currentRoomId = router.query.roomId as string;
+      let currentCheckIn = router.query.checkIn as string;
+      let currentCheckOut = router.query.checkOut as string;
+      let currentGuests = router.query.guests as string;
+      
+      // If no URL params, try to get from localStorage (for rooms page booking)
+      if (!currentRoomId) {
+        const bookingDetails = localStorage.getItem('bookingDetails');
+        if (bookingDetails) {
+          const details = JSON.parse(bookingDetails);
+          currentRoomId = details.roomId?.toString();
+          currentCheckIn = details.checkInDate;
+          currentCheckOut = details.checkOutDate;
+          currentGuests = details.guests?.toString();
+          
+          // Update router query to maintain consistency
+          router.replace({
+            pathname: '/checkout',
+            query: {
+              roomId: currentRoomId,
+              checkIn: currentCheckIn,
+              checkOut: currentCheckOut,
+              guests: currentGuests
+            }
+          }, undefined, { shallow: true });
         }
-      } catch (error) {
-        console.error('Error fetching room:', error);
-        toast.error('Failed to load room details');
-        router.push('/rooms');
-      } finally {
-        setLoading(false);
       }
-    };
+      
+      if (currentRoomId) {
+        const fetchRoomDetails = async () => {
+          try {
+            const response = await fetch(`/api/rooms?id=${currentRoomId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+              setRoom(data.data);
+            } else {
+              toast.error('Failed to load room details');
+              router.push('/rooms');
+            }
+          } catch (error) {
+            console.error('Error fetching room:', error);
+            toast.error('Failed to load room details');
+            router.push('/rooms');
+          } finally {
+            setLoading(false);
+          }
+        };
 
-    fetchRoomDetails();
-  }, [roomId, router]);
+        fetchRoomDetails();
+      } else {
+        toast.error('Please select a room first');
+        router.push('/rooms');
+      }
+    }
+  }, [router.isReady, router]);
 
   const paymentMethodLabels = {
     credit_card: 'Credit/Debit Card (Visa, MasterCard, American Express)',

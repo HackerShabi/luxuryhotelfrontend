@@ -147,7 +147,9 @@ const rooms: Room[] = [
 
 const RoomsPage: React.FC = () => {
   const router = useRouter()
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>(rooms)
+  const [allRooms, setAllRooms] = useState<Room[]>([])
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>([])
+  const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
     type: 'all',
     priceRange: 'all',
@@ -159,8 +161,51 @@ const RoomsPage: React.FC = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  // Fetch rooms from API
   useEffect(() => {
-    let filtered = rooms.filter(room => {
+    const fetchRooms = async () => {
+      try {
+        const response = await fetch('/api/rooms')
+        const data = await response.json()
+        
+        if (data.success) {
+          // Map backend data to frontend format
+          const mappedRooms = data.data.map((room: any) => ({
+            id: room._id,
+            name: room.name,
+            type: room.type,
+            price: room.price,
+            originalPrice: room.originalPrice,
+            maxOccupancy: room.maxOccupancy,
+            size: room.size,
+            description: room.description,
+            images: room.images,
+            amenities: room.amenities,
+            rating: room.rating || 4.5,
+            reviewCount: room.reviewCount || 0,
+            isAvailable: room.isAvailable !== false,
+            isPopular: room.isPopular,
+            discount: room.discount
+          }))
+          setAllRooms(mappedRooms)
+        } else {
+          // Fallback to static data if API fails
+          setAllRooms(rooms)
+        }
+      } catch (error) {
+        console.error('Error fetching rooms:', error)
+        // Fallback to static data if API fails
+        setAllRooms(rooms)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRooms()
+  }, [])
+
+  useEffect(() => {
+    let filtered = allRooms.filter(room => {
       const matchesSearch = room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            room.description.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesType = filters.type === 'all' || room.type === filters.type
@@ -196,7 +241,7 @@ const RoomsPage: React.FC = () => {
     })
 
     setFilteredRooms(filtered)
-  }, [filters, searchTerm, sortBy])
+  }, [allRooms, filters, searchTerm, sortBy])
 
   const handleFilterChange = (filterType: string, value: string) => {
     setFilters(prev => ({ ...prev, [filterType]: value }))
@@ -327,13 +372,20 @@ const RoomsPage: React.FC = () => {
         {/* Results */}
         <section className="section-padding">
           <div className="container-custom">
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-semibold text-luxury-dark">
-                {filteredRooms.length} Room{filteredRooms.length !== 1 ? 's' : ''} Available
-              </h2>
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-luxury-gold"></div>
+                <span className="ml-4 text-lg text-luxury-dark">Loading rooms...</span>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-center mb-8">
+                  <h2 className="text-2xl font-semibold text-luxury-dark">
+                    {filteredRooms.length} Room{filteredRooms.length !== 1 ? 's' : ''} Available
+                  </h2>
+                </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
               {filteredRooms.map((room, index) => (
                 <motion.div
                   key={room.id}
@@ -439,20 +491,22 @@ const RoomsPage: React.FC = () => {
                   </div>
                 </motion.div>
               ))}
-            </div>
+                </div>
 
-            {filteredRooms.length === 0 && (
-              <div className="text-center py-16">
-                <FunnelIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">No rooms found</h3>
-                <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
-                <button
-                  onClick={clearFilters}
-                  className="bg-luxury-gold text-white px-6 py-2 rounded-lg hover:bg-gold-600 transition-colors duration-300"
-                >
-                  Clear All Filters
-                </button>
-              </div>
+                {filteredRooms.length === 0 && (
+                  <div className="text-center py-16">
+                    <FunnelIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-600 mb-2">No rooms found</h3>
+                    <p className="text-gray-500 mb-4">Try adjusting your filters or search terms</p>
+                    <button
+                      onClick={clearFilters}
+                      className="bg-luxury-gold text-white px-6 py-2 rounded-lg hover:bg-gold-600 transition-colors duration-300"
+                    >
+                      Clear All Filters
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>

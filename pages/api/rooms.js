@@ -5,7 +5,7 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://luxuryhotelbackend.onrender.com/api';
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
       const { id } = req.query;
       
       let url = `${backendUrl}/rooms`;
