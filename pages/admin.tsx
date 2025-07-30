@@ -152,7 +152,7 @@ export default function AdminPanel() {
 
     newSocket.on('booking-updated', (data: { booking: Booking }) => {
       console.log('Booking updated:', data)
-      toast.info(`Booking ${data.booking._id} status updated to ${data.booking.status}`)
+      toast.success(`Booking ${data.booking._id} status updated to ${data.booking.status}`)
       // Refresh bookings data
       loadDashboardData()
     })
