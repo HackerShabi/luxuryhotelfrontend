@@ -1,7 +1,7 @@
 // Next.js API route to proxy requests to backend
 
 export default async function handler(req, res) {
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://luxuryhotelbackend.onrender.com/api';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   
   if (req.method === 'GET') {
     try {

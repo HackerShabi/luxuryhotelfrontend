@@ -619,8 +619,16 @@ const RoomsPage: React.FC = () => {
                         // Store booking details for checkout
                         localStorage.setItem('bookingDetails', JSON.stringify(bookingDetails))
                         
-                        // Redirect to checkout
-                        window.location.href = '/checkout'
+                        // Redirect to checkout with query params
+                        router.push({
+                          pathname: '/checkout',
+                          query: {
+                            roomId: selectedRoom.id,
+                            checkIn: bookingDetails.checkInDate,
+                            checkOut: bookingDetails.checkOutDate,
+                            guests: bookingDetails.guests
+                          }
+                        })
                       }}
                       className="w-full bg-luxury-gold text-white py-3 rounded-lg font-semibold hover:bg-gold-600 transition-colors"
                     >

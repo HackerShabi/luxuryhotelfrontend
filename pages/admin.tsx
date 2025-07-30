@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import { toast } from 'react-hot-toast'
+import io from 'socket.io-client'
 import {
   EyeIcon,
   PencilIcon,
@@ -80,6 +81,7 @@ interface Stats {
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
 export default function AdminPanel() {
   const router = useRouter()
@@ -102,6 +104,8 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null)
+  const [socket, setSocket] = useState<any>(null)
+  const [isConnected, setIsConnected] = useState(false)
   
   // Load data on mount
   useEffect(() => {
@@ -122,6 +126,48 @@ export default function AdminPanel() {
       setRefreshInterval(null)
     }
   }, [autoRefresh])
+
+  // Socket.IO connection for real-time updates
+  useEffect(() => {
+    const newSocket = io(SOCKET_URL)
+    setSocket(newSocket)
+
+    newSocket.on('connect', () => {
+      console.log('Connected to server')
+      setIsConnected(true)
+      newSocket.emit('join-admin')
+    })
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from server')
+      setIsConnected(false)
+    })
+
+    newSocket.on('new-booking', (data) => {
+      console.log('New booking received:', data)
+      toast.success(`New booking from ${data.booking.guestInfo.firstName} ${data.booking.guestInfo.lastName}`)
+      // Refresh bookings data
+      loadDashboardData()
+    })
+
+    newSocket.on('booking-updated', (data) => {
+      console.log('Booking updated:', data)
+      toast.info(`Booking ${data.booking.bookingId} status updated to ${data.booking.bookingStatus}`)
+      // Refresh bookings data
+      loadDashboardData()
+    })
+
+    newSocket.on('new-contact', (data) => {
+      console.log('New contact received:', data)
+      toast.success(`New contact message from ${data.contact.name}`)
+      // Refresh contacts data
+      loadDashboardData()
+    })
+
+    return () => {
+      newSocket.close()
+    }
+  }, [])
 
   const loadDashboardData = async () => {
     try {
